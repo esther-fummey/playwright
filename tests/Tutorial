@@ -1,0 +1,466 @@
+// =====================================================================
+// PLAYWRIGHT MASTER TUTORIAL & CHEAT SHEET
+// =====================================================================
+// Complete guide based on practical test examples
+// =====================================================================
+
+// =====================================================================
+// 1. SETUP & IMPORTS
+// =====================================================================
+// import { test, expect } from "@playwright/test";
+//
+// These are the two core imports needed for any Playwright test:
+// - test: The test function to write your tests
+// - expect: The assertion library to verify your test results
+
+// =====================================================================
+// 2. BASIC TEST STRUCTURE & NAVIGATION
+// =====================================================================
+//
+// test('Test Name', async ({ page }) => {
+//     await page.goto('https://www.example.com');  // Navigate to a URL
+//     await page.pause();                          // Manually pause the test here for debugging
+//     // test logic...
+// });
+//
+// The page object is passed by Playwright automatically and contains all navigation
+// and interaction methods. Always use 'async/await' because Playwright is async.
+
+// =====================================================================
+// 3. FINDING ELEMENTS (LOCATORS) - MOST IMPORTANT!
+// =====================================================================
+//
+// PRIORITY 1: User-Centric Locators (BEST PRACTICE - Use these!)
+// ================
+// await page.getByRole('button', { name: 'Login' }).click();
+// await page.getByRole('textbox', { name: 'Username' }).fill('standard_user');
+// await page.getByRole('heading', { name: 'Installation' }).toBeVisible();
+// await page.getByLabel('First name').fill('John');
+// await page.getByPlaceholder('Username').fill('standard_user');
+// await page.getByText('Next').click();
+//
+// Why use these? They match the accessibility tree, so your tests are resilient
+// to HTML structure changes. Your tests literally test what users see!
+//
+// Example from real test:
+// await page.getByRole('button', { name: 'Login' }).click();
+// await page.getByRole('textbox', { name: 'Password' }).fill('secret_sauce');
+//
+// PRIORITY 2: CSS Selectors
+// ================
+// await page.locator('.my-class').click();                    // Class selector
+// await page.locator('#my-id').fill('text');                  // ID selector
+// await page.locator('button.primary').click();               // Combining selectors
+// await page.locator('css=button:visible').click();           // CSS keyword syntax
+// await page.locator('css=button:visible').first().click();   // First match
+//
+// Example from real test:
+// await page.locator('#user-name').fill('standard_user');
+// await page.locator('#password').fill('secret_sauce');
+// await page.locator('#login-button').click();
+//
+// PRIORITY 3: XPath (Use sparingly - breaks easily!)
+// ================
+// await page.locator('//div[@id="xpath"]').click();           // XPath syntax
+// await page.locator('//button[text()="Login"]').click();     // XPath with text
+//
+// Avoid XPath when possible - it's fragile and hard to maintain.
+
+// =====================================================================
+// 4. INTERACTING WITH ELEMENTS
+// =====================================================================
+//
+// .click()           : Clicks the element (button, link, checkbox, etc.)
+// .fill()            : Clears an input field completely and types into it
+// .type()            : Simulates typing key-by-key (rarely used, prefer fill())
+// .check()           : Checks a checkbox
+// .uncheck()         : Unchecks a checkbox
+// .selectOption()    : Selects an option from a dropdown
+// .press()           : Presses a specific key (e.g., 'Enter', 'Tab')
+// .hover()           : Hovers over an element
+// .screenshot()      : Takes a screenshot of the element
+//
+// Example:
+// await page.locator('#username').fill('standard_user');
+// await page.locator('#password').fill('secret_sauce');
+// await page.locator('#login-button').click();
+
+// =====================================================================
+// 5. ASSERTIONS (TESTING YOUR EXPECTATIONS)
+// =====================================================================
+//
+// Page Assertions:
+// await expect(page).toHaveTitle(/Playwright/);               // Check page title
+// await expect(page).toHaveURL('https://example.com');        // Check URL
+//
+// Element Assertions:
+// await expect(page.getByRole('heading')).toBeVisible();      // Element is visible on page
+// await expect(page.getByRole('button')).toBeEnabled();       // Button is clickable
+// await expect(page.getByRole('button')).toBeDisabled();      // Button is not clickable
+// await expect(page.locator('#error')).toContainText('Error message');
+// await expect(page.locator('input')).toHaveValue('text');    // Input has specific value
+//
+// Count Assertions:
+// await expect(page.locator('li')).toHaveCount(3);            // Exactly 3 items
+//
+// Example from real test:
+// await expect(page).toHaveTitle(/Playwright/);
+// await expect(page.getByRole('heading', { name: 'Installation' })).toBeVisible();
+
+// =====================================================================
+// 6. GROUPING TESTS & HOOKS (test.describe)
+// =====================================================================
+//
+// test.describe('Login Tests Group', () => {
+//     // All tests in this group share hooks and setup
+//
+//     test.beforeEach(async ({ page }) => {
+//         // Runs BEFORE each test in this group
+//         await page.goto('https://www.saucedemo.com');
+//     });
+//
+//     test.afterEach(async ({ page }) => {
+//         // Runs AFTER each test in this group
+//         await page.pause();  // Useful for debugging
+//     });
+//
+//     test('successful login', async ({ page }) => {
+//         // Test code here...
+//     });
+//
+//     test('invalid login', async ({ page }) => {
+//         // Test code here...
+//     });
+// });
+//
+// Global Hooks (apply to ALL tests in file):
+// test.beforeAll(async ({ }) => {
+//     // Runs once before all tests in the file
+// });
+// test.afterAll(async ({ }) => {
+//     // Runs once after all tests in the file
+// });
+//
+// Example from real test:
+// test.describe('Saucedemo login test cases group', () => {
+//     test.beforeEach(async ({ page }) => {
+//         await page.goto('https://www.saucedemo.com');
+//     });
+//     test.afterEach(async ({ page }) => {
+//         await page.pause();
+//     });
+//     test('interact with elements in saucedemo', async ({ page }) => {
+//         await page.locator('#user-name').fill('standard_user');
+//         await page.locator('#password').fill('secret_sauce');
+//         await page.locator('#login-button').click();
+//     });
+// });
+
+// =====================================================================
+// 7. ANNOTATIONS (CONTROLLING TEST BEHAVIOR)
+// =====================================================================
+//
+// test.skip()
+// Completely ignores the test (it won't run at all)
+// Use when: Feature is temporarily disabled or under development
+//
+// test('this test will not run', async ({ page }) => {
+//     test.skip();
+//     // code here is ignored
+// });
+//
+// Conditional skip (skip only in specific browser):
+// test('skip in firefox', async ({ page, browserName }) => {
+//     test.skip(browserName === 'firefox', 'Feature not supported on Firefox');
+// });
+//
+// test.fail()
+// Marks a test as "expected to fail". If it actually passes, Playwright flags it as an error!
+// Use when: You know there's a bug but want to document it
+//
+// test.fail('test expected to fail because of Bug #123', async ({ page }) => {
+//     // Test code that currently fails
+// });
+//
+// test.fixme()
+// Like skip(), but marks the test as needing developer attention
+// Use when: The test itself is broken and needs to be rewritten
+//
+// test.fixme('test needs to be rewritten', async ({ page }) => {
+//     // broken code
+// });
+//
+// test.slow()
+// Triples the default timeout for this specific test
+// Use when: Test does heavy processing, file uploads, or complex flows
+//
+// test('a very long checkout flow', async ({ page }) => {
+//     test.slow();
+//     // Long running code - will have 90 seconds instead of 30 seconds
+// });
+//
+// test.step()
+// Breaks a test into named steps for better HTML reporting and debugging
+// Use when: You have a multi-step test that benefits from clear sections
+//
+// test('Login and checkout', async ({ page }) => {
+//     await test.step('Login to the application', async () => {
+//         await page.locator('#username').fill('user');
+//         await page.locator('#password').fill('pass');
+//         await page.locator('#login').click();
+//     });
+//     await test.step('Add item to cart', async () => {
+//         await page.locator('.add-to-cart').click();
+//     });
+// });
+//
+// Example from real test:
+// test.fail('test1', async ({ page }) => {
+//     // This test is marked as expected to fail
+// });
+
+// =====================================================================
+// 8. TAGS & GREP (RUNNING SPECIFIC TESTS)
+// =====================================================================
+//
+// test('My Test', { tag: '@smoke' }, async ({ page }) => { ... })
+//
+// Tags allow you to categorize tests and run subsets from CLI:
+// npx playwright test --grep "@smoke"                    // Run only @smoke tests
+// npx playwright test --grep "@smoke|@regression"        // Run @smoke OR @regression
+// npx playwright test --grep-invert "@api"               // Run everything EXCEPT @api
+// npx playwright test -g "Login Tests"                   // Run tests matching pattern
+//
+// Tips:
+// - Use @smoke for quick sanity checks
+// - Use @regression for full test suite
+// - Use @slow for long-running tests
+// - Use @api for tests that call external APIs
+
+// =====================================================================
+// 9. CLI COMMANDS (RUNNING TESTS)
+// =====================================================================
+//
+// BASIC COMMANDS:
+// npx playwright test                        // Run all tests (headless mode)
+// npx playwright test --headed               // Run tests in headed mode (see the browser!)
+// npx playwright test --ui                   // Open Playwright UI mode (best for debugging!)
+// npx playwright test --debug                // Pause execution in Playwright Inspector
+// npx playwright test filename.spec.ts       // Run specific file
+// npx playwright test filename.spec.ts:10    // Run test at exactly line 10 in that file
+// npx playwright test --last-failed          // Re-run only failed tests from last run
+//
+// BROWSER-SPECIFIC COMMANDS:
+// npx playwright test --project=chromium     // Run only on Chrome
+// npx playwright test --project=firefox      // Run only on Firefox
+// npx playwright test --project=webkit       // Run only on Safari
+// npx playwright test --project=webkit --headed     // Run Safari in headed mode
+// npx playwright test --project=chromium --project=firefox  // Run on multiple browsers
+//
+// FILTER COMMANDS:
+// npx playwright test --grep "@smoke"        // Run tests matching pattern
+// npx playwright test --grep-invert "@slow"  // Skip tests matching pattern
+//
+// DEBUGGING COMMANDS:
+// npx playwright test --headed --debug       // Headed + Inspector = perfect for debugging
+// npx playwright test --update-snapshots     // Update screenshot/snapshot comparisons
+
+// =====================================================================
+// 10. CHECKBOXES & TOGGLES
+// =====================================================================
+// Use .check() and .uncheck() for toggle and checkbox controls.
+// Example:
+// await page.goto('https://www.bing.com/account/general?ru=');
+// await page.getByLabel('See search suggestions as you type').check();
+// await page.getByLabel('See search suggestions as you type').uncheck();
+
+// =====================================================================
+// 11. ELEMENT STATE ASSERTIONS & TEXT FIELD HANDLING
+// =====================================================================
+// Validate an input before and after interaction.
+// Example:
+// const username = page.locator('#user-name');
+// await expect(username).toBeVisible();
+// await expect(username).toBeEnabled();
+// await username.fill('standard_user');
+// await expect(username).toHaveValue('standard_user');
+// await username.clear();
+// await expect(username).toHaveValue('');
+// Use getByPlaceholder and getByRole for alternate locators:
+// await page.getByPlaceholder('Password').fill('123456');
+// await page.getByRole('textbox', { name: 'Username' }).fill('standard_user');
+
+// =====================================================================
+// 12. DEBUGGING & CLEANUP
+// =====================================================================
+// Use page.pause() to stop the test and open the Playwright Inspector.
+// Example:
+// await page.pause();
+// Optionally close the page explicitly when the scenario requires it:
+// await page.close();
+
+// =====================================================================
+// 13. RETRIES & TEST INFO
+// =====================================================================
+// Use retries to stabilize flaky tests.
+// Command line example:
+// npx playwright test --retries=2
+// Inspect retry state inside a test with TestInfo:
+// test('retry example', async ({ page }, testInfo) => {
+//     if (testInfo.retry) {
+//         // This is a retry attempt
+//     }
+//     await page.goto('https://playwright.dev/');
+//     await expect(page).toHaveTitle(/Playwright/);
+// });
+
+// =====================================================================
+// 14. CONFIGURATION (playwright.config.ts)
+// =====================================================================
+//
+// Key settings you should know:
+// testDir: './tests'                    // Where your test files are
+// fullyParallel: true                   // Run all tests in parallel (faster)
+// retries: 1                            // Retry failed tests once
+// workers: undefined                    // Number of parallel workers (default uses available cores)
+// reporter: 'html'                      // Generate HTML report
+// trace: 'on-first-retry'               // Record trace when test fails on first attempt
+// headless: true                        // Run in headless mode
+// viewport: { width: 1440, height: 713 }  // Browser window size
+//
+// Example project setup:
+// projects: [
+//     {
+//         name: 'chromium',
+//         use: { ...devices['Desktop Chrome'], headless: true },
+//     },
+//     {
+//         name: 'firefox',
+//         use: { ...devices['Desktop Firefox'] },
+//     },
+// ]
+
+// =====================================================================
+// 15. CONCEPTS & TERMINOLOGY
+// =====================================================================
+//
+// Headless mode    : Tests run in background without showing browser window (faster)
+// Headed mode      : Browser window is visible so you can watch tests (slower, better for debugging)
+// Retries          : How many times Playwright auto-retries a failed test
+// Workers          : How many tests run simultaneously in parallel
+// Fixtures         : Reusable setup/teardown code (page, browser, context)
+// Trace            : Records a video-like trace of the test execution for debugging
+// TestInfo         : Object containing metadata about current test run (e.g., test.retry)
+//
+// Example using TestInfo:
+// test('has title', async ({ page }, TestInfo) => {
+//     if(TestInfo.retry) {
+//         // This is a retry, do something different?
+//     }
+//     await page.goto('https://playwright.dev/');
+//     await expect(page).toHaveTitle(/Playwright/);
+// });
+
+// =====================================================================
+// 16. BEST PRACTICES SUMMARY
+// =====================================================================
+//
+// ✅ DO:
+// - Use getByRole, getByLabel, getByText for locators (user-centric)
+// - Use .fill() to input text (not .type())
+// - Group related tests with test.describe()
+// - Use test.step() to break complex tests into readable steps
+// - Run tests in --ui mode to debug
+// - Use --headed when debugging flaky tests
+// - Test what users see and interact with, not HTML structure
+// - Use meaningful test names that describe what you're testing
+//
+// ❌ DON'T:
+// - Use XPath (it's fragile - breaks with small HTML changes)
+// - Use .type() for text input (.fill() is better)
+// - Create massive tests (keep tests focused and independent)
+// - Rely on page.pause() in production tests (debug-only!)
+// - Use generic names like "test1" or "test 2"
+// - Test implementation details, test user behavior
+
+// =====================================================================
+// 17. PAGE OBJECT MODEL (POM)
+// =====================================================================
+// The Page Object Model helps organize locators and actions per page.
+// Create a class per page that exposes actions, not raw locators.
+// Example structure (TypeScript):
+// export class LoginPage {
+//     readonly page: Page;
+//     constructor(page: Page) { this.page = page; }
+//     async open() { await this.page.goto('https://www.saucedemo.com'); }
+//     async login(user: string, pass: string) {
+//         await this.page.getByRole('textbox', { name: 'Username' }).fill(user);
+//         await this.page.getByRole('textbox', { name: 'Password' }).fill(pass);
+//         await this.page.getByRole('button', { name: 'Login' }).click();
+//     }
+// }
+
+// Benefits:
+// - Encapsulates page details
+// - Reusable across tests
+// - Easier maintenance when UI changes
+
+// =====================================================================
+// 18. PAGE MANAGER / FACTORY PATTERN
+// =====================================================================
+// A `PageManager` (or factory) centralizes creation of page objects and
+// simplifies test setup. It returns instances of your page classes.
+// Example:
+// export class PageManager {
+//     constructor(private page: Page) {}
+//     loginPage() { return new LoginPage(this.page); }
+//     homePage() { return new HomePage(this.page); }
+// }
+// Usage in a test:
+// const pm = new PageManager(page);
+// await pm.loginPage().open();
+// await pm.loginPage().login('standard_user', 'secret_sauce');
+
+// =====================================================================
+// 19. FIXTURES & CUSTOM FIXTURES
+// =====================================================================
+// Playwright fixtures let you share setup/teardown across tests. Use a
+// `fixtures.ts` file to declare reusable fixtures such as a pre-logged-in
+// page, API setup, or test data. Example:
+// import { test as base } from '@playwright/test';
+// import { PageManager } from './pageObjects/PageManager';
+// export const test = base.extend<{ pm: PageManager }>({
+//   pm: async ({ page }, use) => {
+//     const pm = new PageManager(page);
+//     await use(pm);
+//   }
+// });
+// Then in tests: `test('...', async ({ pm }) => { await pm.loginPage().login(...); })`
+
+// =====================================================================
+// 20. AVOIDING `waitForTimeout` — USE SMART WAITS
+// =====================================================================
+// Replace fixed sleeps with assertions or event-based waits. Examples:
+// await page.waitForSelector('selector');
+// await expect(page.getByText('Done')).toBeVisible();
+// await page.locator('button').waitFor({ state: 'visible' });
+// These make tests more reliable and faster.
+
+// =====================================================================
+// 21. EXAMPLE: E2E USING PageManager (recommended pattern)
+// =====================================================================
+// test('E2E flow with PageManager', async ({ page }) => {
+//   const pm = new PageManager(page);
+//   await pm.loginPage().open();
+//   await pm.loginPage().login('standard_user', 'secret_sauce');
+//   await pm.homePage().addProductToCart();
+//   await pm.cartPage().clickOnCheckoutButton();
+//   await pm.yourInfoPage().enterYourInformation('Bonit','Kumar','12345');
+//   await pm.overviewPage().placeTheOrder();
+//   await pm.orderConfirmPage().navigateToHome();
+// });
+
+// Notes:
+// - Name your manager `PageManager` (avoid typos like `PagaManager`).
+// - Keep test steps small and readable; prefer page object methods over
+//   inline locator code in tests.
