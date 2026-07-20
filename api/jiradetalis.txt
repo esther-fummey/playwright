@@ -1,0 +1,3 @@
+Jira credentials:
+This file previously contained sensitive credentials and has been redacted for security.
+Use environment variables or a secure secret store instead of committing tokens or passwords to the repository.
